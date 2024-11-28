@@ -11,11 +11,9 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 
-// CORS Configuration
+// Allow all origins for CORS
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN, // Set in your .env file
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: '*',  // Allow all origins
 };
 app.use(cors(corsOptions)); // Enable CORS
 
