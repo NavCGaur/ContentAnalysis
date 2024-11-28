@@ -3,33 +3,32 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { transcribeVideo } from './transcribeVideo.js';
 
-const PORT = process.env.PORT || 5000;
-
-// Configure dotenv
 dotenv.config();
 
-const app = express();  
+const app = express();
+const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(express.json());
 
-app.options('*', cors(corsOptions)); // Allow all preflight OPTIONS requests
-
-console.log("process.env.CORS_ORIGIN",process.env.CORS_ORIGIN)
+// CORS Configuration
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN, 
-  };
+  origin: process.env.CORS_ORIGIN, // Set in your .env file
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions)); // Enable CORS
 
-app.use(cors(corsOptions));  
-console.log("process.env.CORS_ORIGIN value",process.env.CORS_ORIGIN);
+// Allow all preflight OPTIONS requests
+app.options('*', cors(corsOptions));
 
-// Environment checks
-if (!process.env.PORT) {
-  throw new Error('Missing required PORT in environment variables.');
-}
+// Debug: Log environment variables
+console.log('CORS Origin:', process.env.CORS_ORIGIN);
 
-
-// Routes
+// POST Route: Transcription
 app.post('/transcribe', async (req, res) => {
+  console.log('Received request:', req.body);
+
   const { videoUrl } = req.body;
   if (!videoUrl) {
     return res.status(400).json({ error: 'Video URL is required' });
@@ -43,8 +42,8 @@ app.post('/transcribe', async (req, res) => {
     const lineChartAnalysis = response.lineChartAnalysis;
     const pieChartAnalysis = response.pieChartAnalysis;
 
-
     const summaryData = result.summary;
+
     // Prepare sentiment data for chart
     const sentimentData = [];
     let score = 0;
@@ -59,19 +58,23 @@ app.post('/transcribe', async (req, res) => {
         timestamp: sentiment.start / 1000, // Convert ms to seconds
         score,
       });
-
     });
-    console.log("Response Sent to frontend")
-    return res.json({ summaryData, sentimentData, aiAnalysisData, lineChartAnalysis, pieChartAnalysis });
 
+    console.log('Response sent to frontend');
+    return res.json({
+      summaryData,
+      sentimentData,
+      aiAnalysisData,
+      lineChartAnalysis,
+      pieChartAnalysis,
+    });
   } catch (error) {
     console.error('Error during analysis:', error);
-
     res.status(500).json({ error: error.message });
   }
 });
 
-// Start server
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
