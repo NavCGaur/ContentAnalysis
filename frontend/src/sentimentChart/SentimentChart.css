@@ -48,10 +48,12 @@
   /* Loading State */
   .sentimentChart__loading {
     text-align: center;
-    margin: 20px 0;
+    margin: 20px 40%;
+    width: 250px;
   }
   
   .sentimentChart__loading p {
+    width: 250px;
     margin-top: 10px;
   }
   

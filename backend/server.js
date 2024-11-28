@@ -16,7 +16,8 @@ const corsOptions = {
     origin: process.env.CORS_ORIGIN, 
   };
 
-  app.use(cors(corsOptions));  
+app.use(cors(corsOptions));  
+console.log("process.env.CORS_ORIGIN value",process.env.CORS_ORIGIN);
 
 // Environment checks
 if (!process.env.PORT) {

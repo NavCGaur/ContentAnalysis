@@ -1,14 +1,14 @@
 
 
 import React, { useState } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, Title, CategoryScale, Filler } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, LineElement, PointElement, Title, CategoryScale, LinearScale, Filler } from 'chart.js';
 import { Pie, Line } from 'react-chartjs-2';
 import axios from 'axios';
 import Skeleton from '@mui/material/Skeleton';
 import './SentimentChart.css';
 
 // Chart.js registration
-ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, Title, CategoryScale, Filler);
+ChartJS.register(ArcElement, Tooltip, Legend, LineElement, PointElement, Title, CategoryScale,LinearScale, Filler);
 
 const SentimentChart = () => {
   const [videoUrl, setVideoUrl] = useState('');
@@ -30,8 +30,10 @@ const SentimentChart = () => {
     setPieAnalysis(null);
 
     try {
-      console.log("react app url for backend",process.env.REACT_APP_API_URL )
-      const response = await axios.post(`https://assemblyaibackend.vercel.app/transcribe`, { videoUrl });
+
+      console.log("process.env.REACT_APP_API_URL value",process.env.REACT_APP_API_URL)
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/transcribe`, { videoUrl });
+
       const { summaryData, sentimentData, aiAnalysisData, lineChartAnalysis, pieChartAnalysis } = response.data;
 
       if (summaryData) setSummary(summaryData);
@@ -120,6 +122,24 @@ const SentimentChart = () => {
 
       {summary && <div className="sentimentChart__summary"><b>Summary:</b> {summary}</div>}
 
+      
+      {aiAnalysis && (
+        <div className="sentimentChart__aiAnalysis">
+          {aiAnalysis.map((section, idx) => (
+            <div className='sentimentChart__aiAnalysis-section' key={idx}>
+              <h2>{idx + 1}. {section.title}</h2>
+              {section.subsections.map((sub, subIdx) => (
+                <div className='sentimentChart__aiAnalysis-subsection' key={subIdx}>
+                  <h3>{String.fromCharCode(97 + subIdx)}. {sub.subtitle}</h3>
+                  <ul>{sub.points.map((point, pIdx) => <li key={pIdx}>{point}</li>)}</ul>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+
  
       {chartData && (
         <div className="sentimentChart__linechart">
@@ -207,22 +227,6 @@ const SentimentChart = () => {
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {aiAnalysis && (
-        <div className="sentimentChart__aiAnalysis">
-          {aiAnalysis.map((section, idx) => (
-            <div className='sentimentChart__aiAnalysis-section' key={idx}>
-              <h2>{idx + 1}. {section.title}</h2>
-              {section.subsections.map((sub, subIdx) => (
-                <div className='sentimentChart__aiAnalysis-subsection' key={subIdx}>
-                  <h3>{String.fromCharCode(97 + subIdx)}. {sub.subtitle}</h3>
-                  <ul>{sub.points.map((point, pIdx) => <li key={pIdx}>{point}</li>)}</ul>
-                </div>
-              ))}
-            </div>
-          ))}
         </div>
       )}
     </div>
