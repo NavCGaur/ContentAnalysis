@@ -12,6 +12,8 @@ const app = express();
 
 app.use(express.json());
 
+app.options('*', cors(corsOptions)); // Allow all preflight OPTIONS requests
+
 console.log("process.env.CORS_ORIGIN",process.env.CORS_ORIGIN)
 const corsOptions = {
     origin: process.env.CORS_ORIGIN, 

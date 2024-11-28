@@ -32,8 +32,16 @@ const SentimentChart = () => {
     try {
 
       console.log("process.env.REACT_APP_API_URL value",process.env.REACT_APP_API_URL)
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/transcribe`, { videoUrl });
-
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/transcribe`,
+        { videoUrl },
+        {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }
+    );
+    
       const { summaryData, sentimentData, aiAnalysisData, lineChartAnalysis, pieChartAnalysis } = response.data;
 
       if (summaryData) setSummary(summaryData);
