@@ -3,8 +3,6 @@ import { exec as execCallback } from 'child_process';
 import axios from 'axios';
 import { AssemblyAI } from 'assemblyai';
 import dotenv from 'dotenv';
-import ytdl from 'yt-dlp-exec'; // Import yt-dlp-exec
-
 
 // Configure dotenv
 dotenv.config();
@@ -20,30 +18,7 @@ if (!process.env.ASSEMBLYAI_API_KEY) {
 const client = new AssemblyAI({ apiKey: process.env.ASSEMBLYAI_API_KEY });
 
 
-// Helper function to extract audio from YouTube using yt-dlp-exec
-const getAudioUrlFromYouTube = async (videoUrl) => {
-  try {
-    const audioUrl = await ytdl(videoUrl, {
-      format: 'bestaudio/best', // Get best audio quality available
-      quiet: true, // Prevent yt-dlp output in console
-      extract_audio: true, // Ensure only audio is extracted
-      audio_quality: 0, // Set to 0 for best quality
-      outtmpl: '%(id)s.%(ext)s', // Template for saving file name
-    });
-    return audioUrl;
-  } catch (error) {
-    console.error('Error extracting audio URL:', error);
-    throw new Error('Failed to extract audio from the YouTube video.');
-  }
-};
 
-
-
-
-
-
-
-//comment
 // AssemblyAI Client
 const formatAiAnalysis = (response) => {
   if (!response) return [];
@@ -178,8 +153,9 @@ export async function transcribeVideo(videoUrl) {
     console.log('Starting transcription and analysis for:', videoUrl);
 
     // 1. Extract audio URL
-    const directUrl = await getAudioUrlFromYouTube(videoUrl);
-    console.log('Got audio URL:', directUrl);
+    const { stdout: audioUrl } = await exec(`yt-dlp -f bestaudio --audio-quality 5 -g "${videoUrl}"`);
+    const directUrl = audioUrl.trim();
+    console.log('Got audio URL');
 
     // 2. Stream audio to AssemblyAI
     const uploadResponse = await axios({
