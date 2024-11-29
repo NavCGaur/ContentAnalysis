@@ -3,12 +3,36 @@ import { exec as execCallback } from 'child_process';
 import axios from 'axios';
 import { AssemblyAI } from 'assemblyai';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 
 // Configure dotenv
 dotenv.config();
 
 // Convert exec to promise
 const exec = promisify(execCallback);
+
+// Cookie handling functions
+const saveCookies = async (cookies, cookiePath) => {
+  try {
+    await fs.promises.writeFile(cookiePath, cookies);
+    console.log('Cookies saved successfully');
+  } catch (error) {
+    console.error('Error saving cookies:', error);
+    throw error;
+  }
+};
+
+const loadCookies = async (cookiePath) => {
+  try {
+    const cookies = await fs.promises.readFile(cookiePath, 'utf-8');
+    return cookies;
+  } catch (error) {
+    console.error('Error loading cookies:', error);
+    return null;
+  }
+};
+
 
 // Environment checks
 if (!process.env.ASSEMBLYAI_API_KEY) {
@@ -152,10 +176,24 @@ export async function transcribeVideo(videoUrl) {
   try {
     console.log('Starting transcription and analysis for:', videoUrl);
 
-    // 1. Extract audio URL
-    const { stdout: audioUrl } = await exec(`yt-dlp -f bestaudio --audio-quality 5 -g "${videoUrl}"`);
-    const directUrl = audioUrl.trim();
-    console.log('Got audio URL');
+    // Cookie handling
+    const cookiePath = path.join(process.cwd(), 'youtube.cookies');
+    let cookies = await loadCookies(cookiePath);
+    
+    if (!cookies) {
+      // Get cookies from browser
+      const { stdout: newCookies } = await exec('yt-dlp --cookies-from-browser chrome --cookies-file youtube.cookies');
+      cookies = newCookies;
+      await saveCookies(cookies, cookiePath);
+    }
+
+
+   // Extract audio URL with cookies
+   const { stdout: audioUrl } = await exec(
+    `yt-dlp -f bestaudio --audio-quality 5 --cookies-file "${cookiePath}" -g "${videoUrl}"`
+  );
+  const directUrl = audioUrl.trim();
+  console.log('Got audio URL using cookies');
 
     // 2. Stream audio to AssemblyAI
     const uploadResponse = await axios({
