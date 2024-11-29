@@ -182,7 +182,7 @@ export async function transcribeVideo(videoUrl) {
     
     if (!cookies) {
       // Get cookies from browser
-      const { stdout: newCookies } = await exec('yt-dlp --cookies-from-browser chrome --cookies-file youtube.cookies');
+      const { stdout: newCookies } = await exec('yt-dlp --cookies-from-browser chrome --cookies youtube.cookies');
       cookies = newCookies;
       await saveCookies(cookies, cookiePath);
     }
