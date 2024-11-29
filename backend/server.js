@@ -11,13 +11,19 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 
-// Allow all origins for CORS
+// CORS configuration
 const corsOptions = {
-  origin: '*',  // Allow all origins
+  origin: ['https://content-analysis-swart.vercel.app', process.env.CORS_ORIGIN || '*'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
 };
-app.use(cors(corsOptions)); // Enable CORS
 
-// Allow all preflight OPTIONS requests
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests
 app.options('*', cors(corsOptions));
 
 // Debug: Log environment variables
