@@ -11,5 +11,15 @@
       "src": "/(.*)",
       "dest": "/server.js"
     }
-  ]
+  ],
+  "env": {
+    "PYTHON_VERSION": "3.13.0"  
+  },
+  "build": {
+    "commands": [
+      "apt-get update",               
+      "apt-get install -y python3",  
+      "apt-get install -y python3-pip" 
+    ]
+  }
 }
