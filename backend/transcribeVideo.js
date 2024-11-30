@@ -162,13 +162,8 @@ export async function transcribeVideo(videoUrl) {
 
     // Use invidious API (public YouTube frontend)
     const INVIDIOUS_INSTANCES = [
-      'https://inv.vern.cc',
-      'https://invidious.protokolla.fi',
-      'https://invidious.lunar.icu',
-      'https://vid.priv.au',
-      'https://yt.cdaut.de',
-      'https://invidious.privacydev.net',
-      'https://invidious.fdn.fr'
+      'https://inv.nadeko.net',
+      'https://invidious.jing.rocks'
     ];
 
     let directUrl;
