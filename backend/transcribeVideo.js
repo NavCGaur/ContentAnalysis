@@ -12,26 +12,7 @@ dotenv.config();
 // Convert exec to promise
 const exec = promisify(execCallback);
 
-// Cookie handling functions
-const saveCookies = async (cookies, cookiePath) => {
-  try {
-    await fs.promises.writeFile(cookiePath, cookies);
-    console.log('Cookies saved successfully');
-  } catch (error) {
-    console.error('Error saving cookies:', error);
-    throw error;
-  }
-};
 
-const loadCookies = async (cookiePath) => {
-  try {
-    const cookies = await fs.promises.readFile(cookiePath, 'utf-8');
-    return cookies;
-  } catch (error) {
-    console.error('Error loading cookies:', error);
-    return null;
-  }
-};
 
 
 // Environment checks
@@ -176,24 +157,35 @@ export async function transcribeVideo(videoUrl) {
   try {
     console.log('Starting transcription and analysis for:', videoUrl);
 
-    // Cookie handling
-    const cookiePath = path.join(process.cwd(), 'youtube.cookies');
-    let cookies = await loadCookies(cookiePath);
-    
-    if (!cookies) {
-      // Get cookies from browser
-      const { stdout: newCookies } = await exec('yt-dlp --cookies-from-browser chrome --cookies youtube.cookies');
-      cookies = newCookies;
-      await saveCookies(cookies, cookiePath);
+    // Extract video ID from URL
+    const videoId = videoUrl.match(/(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/user\/\S+|\/ytscreeningroom\?v=|\/sandalsResorts#\w\/\w\/.*\/))([^\/&?\n]+)/)[1];
+
+    // Use invidious API (public YouTube frontend)
+    const INVIDIOUS_INSTANCES = [
+      'https://invidious.snopyta.org',
+      'https://invidious.kavin.rocks',
+      'https://vid.puffyan.us',
+      'https://yt.artemislena.eu'
+    ];
+
+    let directUrl;
+    for (const instance of INVIDIOUS_INSTANCES) {
+      try {
+        const response = await axios.get(`${instance}/api/v1/videos/${videoId}`);
+        const audioFormats = response.data.adaptiveFormats.filter(f => f.type.includes('audio'));
+        if (audioFormats.length > 0) {
+          directUrl = audioFormats[0].url;
+          break;
+        }
+      } catch (err) {
+        console.log(`Failed with ${instance}, trying next...`);
+        continue;
+      }
     }
 
-
-   // Extract audio URL with cookies
-   const { stdout: audioUrl } = await exec(
-    `yt-dlp -f bestaudio --audio-quality 5 --cookies "${cookiePath}" -g "${videoUrl}"`
-  );
-  const directUrl = audioUrl.trim();
-  console.log('Got audio URL using cookies');
+    if (!directUrl) {
+      throw new Error('Could not retrieve audio URL from any instance');
+    }
 
     // 2. Stream audio to AssemblyAI
     const uploadResponse = await axios({
